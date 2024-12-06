@@ -1,22 +1,51 @@
 import os
 import pyaes
+import logging
 
-## abrir o arquivo criptografado
-file_name = "teste.txt.ransomwaretroll"
-file = open(file_name, "rb")
-file_data = file.read()
-file.close()
 
-## chave para descriptografia
+logging.basicConfig(filename='decryption.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def decrypt_file(file_name, key):
+    try:
+        
+        if not os.path.isfile(file_name):
+            logging.error(f"Arquivo criptografado {file_name} não encontrado.")
+            return False
+
+        
+        with open(file_name, "rb") as file:
+            file_data = file.read()
+
+        
+        aes = pyaes.AESModeOfOperationCTR(key)
+
+        
+        decrypted_data = aes.decrypt(file_data)
+
+        
+        os.remove(file_name)
+        logging.info(f"Arquivo criptografado {file_name} removido com sucesso.")
+
+        
+        new_file_name = file_name.replace(".ransomwaretroll", "")  
+        with open(new_file_name, "wb") as new_file:
+            new_file.write(decrypted_data)
+        
+        logging.info(f"Arquivo descriptografado salvo como {new_file_name}")
+        return True
+    
+    except Exception as e:
+        logging.error(f"Erro durante a descriptografia do arquivo {file_name}: {e}")
+        return False
+
+
 key = b"testeransomwares"
-aes = pyaes.AESModeOfOperationCTR(key)
-decrypt_data = aes.decrypt(file_data)
 
-## remover o arquivo criptografado
-os.remove(file_name)
 
-## criar o arquivo descriptografado
-new_file = "teste.txt"
-new_file = open(f'{new_file}', "wb")
-new_file.write(decrypt_data)
-new_file.close()
+file_name = "teste.txt.ransomwaretroll"
+
+
+if decrypt_file(file_name, key):
+    print(f"O arquivo {file_name} foi descriptografado com sucesso.")
+else:
+    print(f"Erro ao descriptografar o arquivo {file_name}.")
